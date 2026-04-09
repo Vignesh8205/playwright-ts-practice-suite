@@ -1,0 +1,6 @@
+[
+  { "id": 1,  "title": "sunt aut facere", "shouldExist": true },
+  { "id": 5,  "title": "nesciunt quas odio", "shouldExist": true },
+  { "id": 10, "title": "optio molestias id quia eum", "shouldExist": true },
+  { "id": 99999, "title": "non-existent post", "shouldExist": false }
+]

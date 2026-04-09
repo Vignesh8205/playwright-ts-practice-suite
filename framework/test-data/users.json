@@ -1,0 +1,20 @@
+{
+  "admin": {
+    "name": "Admin User",
+    "email": "admin@demoqa.com",
+    "password": "Admin@123",
+    "role": "admin"
+  },
+  "editor": {
+    "name": "Editor User",
+    "email": "editor@demoqa.com",
+    "password": "Editor@123",
+    "role": "editor"
+  },
+  "viewer": {
+    "name": "Viewer User",
+    "email": "viewer@demoqa.com",
+    "password": "Viewer@123",
+    "role": "viewer"
+  }
+}

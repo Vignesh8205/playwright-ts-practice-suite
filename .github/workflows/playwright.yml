@@ -1,0 +1,234 @@
+name: 🎭 Playwright Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run daily at 6 AM UTC, Monday–Friday
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        default: "qa"
+        type: choice
+        options: [dev, qa, staging, prod]
+      test_suite:
+        description: "Test suite to run"
+        required: false
+        default: "all"
+        type: choice
+        options: [all, smoke, regression, api, e2e, examples]
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # JOB 1: Smoke Tests (Fast Gate — runs first)
+  # ──────────────────────────────────────────────────────────────
+  smoke-tests:
+    name: 🚀 Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🎭 Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: 🔬 Run Smoke Tests – Framework
+        run: npx playwright test framework/tests/ --config=framework/playwright.config.ts --grep @smoke --project=chromium
+        env:
+          ENV: ${{ github.event.inputs.environment || 'qa' }}
+          BASE_URL: ${{ secrets.QA_BASE_URL }}
+          API_URL: ${{ secrets.QA_API_URL }}
+          ADMIN_USERNAME: ${{ secrets.QA_ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.QA_ADMIN_PASSWORD }}
+          HEADLESS: "true"
+          CI: "true"
+
+      - name: 📊 Upload smoke report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-report
+          path: framework/reports/html/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 2: Examples Verification
+  # ──────────────────────────────────────────────────────────────
+  examples-tests:
+    name: 📚 Examples Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: smoke-tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        example:
+          - "01-typescript-basics"
+          - "02-playwright-basics"
+          - "05-assertions"
+          - "07-api-testing"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run example ${{ matrix.example }}
+        run: npx playwright test examples/${{ matrix.example }}/ --project=chromium
+        env:
+          CI: "true"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: example-report-${{ matrix.example }}
+          path: playwright-report/
+          retention-days: 3
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 3: Full Regression (Multi-browser, Sharded)
+  # ──────────────────────────────────────────────────────────────
+  regression-tests:
+    name: 🧪 Regression – ${{ matrix.browser }} (Shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: smoke-tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+        shard: [1, 2]
+        shardTotal: [2]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: 🔬 Run regression shard ${{ matrix.shard }}/${{ matrix.shardTotal }}
+        run: |
+          npx playwright test framework/tests/ \
+            --config=framework/playwright.config.ts \
+            --project=${{ matrix.browser }} \
+            --shard=${{ matrix.shard }}/${{ matrix.shardTotal }}
+        env:
+          ENV: ${{ github.event.inputs.environment || 'qa' }}
+          BASE_URL: ${{ secrets.QA_BASE_URL }}
+          API_URL: ${{ secrets.QA_API_URL }}
+          ADMIN_USERNAME: ${{ secrets.QA_ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.QA_ADMIN_PASSWORD }}
+          HEADLESS: "true"
+          CI: "true"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-${{ matrix.browser }}-shard-${{ matrix.shard }}
+          path: |
+            framework/reports/html/
+            framework/reports/json/
+          retention-days: 14
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 4: API Tests
+  # ──────────────────────────────────────────────────────────────
+  api-tests:
+    name: 🔌 API Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: smoke-tests
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: Run API tests
+        run: npx playwright test framework/tests/api/ --config=framework/playwright.config.ts --project=api
+        env:
+          ENV: ${{ github.event.inputs.environment || 'qa' }}
+          API_URL: ${{ secrets.QA_API_URL || 'https://jsonplaceholder.typicode.com' }}
+          CI: "true"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-report
+          path: framework/reports/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────
+  # JOB 5: Merge Reports & Notify
+  # ──────────────────────────────────────────────────────────────
+  publish-report:
+    name: 📊 Merge & Publish Reports
+    runs-on: ubuntu-latest
+    needs: [smoke-tests, regression-tests, api-tests]
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-reports/
+          pattern: regression-*
+
+      - name: Merge reports
+        run: |
+          if ls all-reports/*/blob-report 2>/dev/null; then
+            npx playwright merge-reports --reporter html ./all-reports
+            echo "Reports merged successfully"
+          else
+            echo "No blob reports to merge"
+          fi
+
+      - name: Upload merged report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: final-merged-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Send Slack notification on failure
+        if: failure()
+        run: |
+          echo "Tests failed! Send notification via webhook if SLACK_WEBHOOK is set"
+          # curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          #   -H 'Content-type: application/json' \
+          #   --data '{"text":"❌ Playwright tests FAILED on ${{ github.ref }}"}'

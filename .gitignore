@@ -1,0 +1,36 @@
+# Playwright artifacts
+test-results/
+playwright-report/
+framework/reports/
+
+# Auth state (contains sensitive tokens)
+framework/reports/.auth/
+auth.json
+
+# Logs
+framework/reports/logs/
+logs/
+
+# Node modules
+node_modules/
+
+# TypeScript build output
+dist/
+
+# Environment files with real credentials (commit templates with placeholder values only)
+.env.dev
+.env.prod
+# Keep .env.qa as the reference template
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.suo
+*.user
+
+# Screenshots (usually generated on failure, don't commit)
+framework/reports/screenshots/
+screenshots/

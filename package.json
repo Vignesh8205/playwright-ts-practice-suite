@@ -1,0 +1,36 @@
+{
+  "name": "playwright-typescript-complete",
+  "version": "1.0.0",
+  "description": "Playwright + TypeScript — Beginner to Industry-Level Complete Project",
+  "scripts": {
+    "test": "playwright test",
+    "test:examples": "playwright test examples/ --config=playwright.config.ts",
+    "test:framework": "playwright test framework/tests/ --config=framework/playwright.config.ts",
+    "test:framework:dev": "cross-env ENV=dev playwright test framework/tests/ --config=framework/playwright.config.ts",
+    "test:framework:qa": "cross-env ENV=qa playwright test framework/tests/ --config=framework/playwright.config.ts",
+    "test:framework:smoke": "playwright test framework/tests/ --config=framework/playwright.config.ts --grep @smoke",
+    "test:framework:headed": "playwright test framework/tests/ --config=framework/playwright.config.ts --headed",
+    "test:framework:debug": "playwright test framework/tests/ --config=framework/playwright.config.ts --debug",
+    "test:ex:ts": "playwright test examples/01-typescript-basics/ --config=playwright.config.ts",
+    "test:ex:basics": "playwright test examples/02-playwright-basics/ --config=playwright.config.ts",
+    "test:ex:locators": "playwright test examples/03-locators/ --config=playwright.config.ts",
+    "test:ex:actions": "playwright test examples/04-actions/ --config=playwright.config.ts",
+    "test:ex:assertions": "playwright test examples/05-assertions/ --config=playwright.config.ts",
+    "test:ex:elements": "playwright test examples/06-handling-elements/ --config=playwright.config.ts",
+    "test:ex:api": "playwright test examples/07-api-testing/ --config=playwright.config.ts",
+    "test:ex:data": "playwright test examples/08-data-driven-testing/ --config=playwright.config.ts",
+    "test:ex:e2e": "playwright test examples/09-e2e-scenarios/ --config=playwright.config.ts",
+    "report": "playwright show-report",
+    "report:framework": "playwright show-report framework/reports/html",
+    "codegen": "playwright codegen",
+    "install:browsers": "playwright install",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.12.0",
+    "typescript": "^5.4.5",
+    "dotenv": "^16.4.5",
+    "cross-env": "^7.0.3"
+  }
+}
