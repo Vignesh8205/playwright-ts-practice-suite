@@ -7,7 +7,7 @@
 ## 📁 Project Structure
 
 ```
-playwright-typescript-complete/
+playwright-ts-practice-suite/
 │
 ├── 📁 examples/                        ← Standalone, runnable examples
 │   ├── 01-typescript-basics/           ← TypeScript language features
