@@ -21,7 +21,7 @@ test("01 – Handle Alert dialog (accept)", async ({ page }) => {
     console.log("  Dialog type:", dialog.type());
     console.log("  Dialog message:", dialog.message());
     expect(dialog.type()).toBe("alert");
-    expect(dialog.message()).toContain("alert box");
+    expect(dialog.message()).toContain("You clicked a button");
     await dialog.accept();
   });
 
@@ -43,7 +43,7 @@ test("02 – Handle Confirm dialog (dismiss)", async ({ page }) => {
 
   // Check result message
   const result = page.locator("#confirmResult");
-  await expect(result).toContainText("Do You Confirm?");
+  await expect(result).toContainText("You selected Cancel");
   console.log("✅ Confirm dialog dismissed");
 });
 
