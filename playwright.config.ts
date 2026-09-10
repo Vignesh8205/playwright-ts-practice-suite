@@ -6,9 +6,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  // Examples use the public Playwright demo site
-  testDir: "./examples",
-  // testMatch: "**/*.spec.ts",
+  // Include all specs across the project
+  testDir: ".",
+  testMatch: "**/*.spec.ts",
 
   fullyParallel: false,     // Keep serial for learning purposes
   workers: 1,
