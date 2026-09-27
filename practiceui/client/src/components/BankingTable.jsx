@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, Building2, Globe, MapPin, Building, CreditCard, Landmark } from 'lucide-react';
+import { ChevronRight, ChevronDown, Building2, Globe, MapPin, Building, CreditCard, Landmark, Printer } from 'lucide-react';
 import './BankingTable.css';
 
 const formatCurrency = (amount) => {
@@ -80,11 +80,21 @@ const BankingTable = ({ data, loading }) => {
     );
   }
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="banking-table-wrapper">
-      <div className="table-header-title">
-        <h2>Global Banking Overview</h2>
-        <p>Hierarchical view of organizational accounts and balances</p>
+      <div className="table-header-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h2>Global Banking Overview</h2>
+          <p>Hierarchical view of organizational accounts and balances</p>
+        </div>
+        <button className="print-button" onClick={handlePrint} title="Print or Save as PDF">
+          <Printer size={16} />
+          <span>Save PDF</span>
+        </button>
       </div>
       <div className="table-container">
         <table className="banking-table">

@@ -194,3 +194,4 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+@media print { .print-button { display: none !important; } .app-header { display: none !important; } .app-container { background: white !important; color: black !important; padding: 0 !important; } .banking-table-wrapper { background: white !important; color: black !important; box-shadow: none !important; border: none !important; } .banking-table th { background: #f1f5f9 !important; color: #0f172a !important; } .node-name { color: #0f172a !important; } .expand-icon-wrapper { display: none !important; } .table-row:not(.is-expanded) { display: table-row !important; } .depth-0 .node-name { color: #0f172a !important; } }
